@@ -4,7 +4,6 @@ services:
         image: linuxserver/wireguard:latest
         environment:
             SERVERURL: '$$cap_appname.$$cap_root_domain'
-            PEERS: 2
         volumes:
             - '$$cap_appname-data:/config'
         ports:
@@ -14,6 +13,29 @@ services:
             - NET_ADMIN
         caproverExtra:
             containerHttpPort: '5000'
+    '$$cap_appname-ui':
+        image: ngoduykhanh/wireguard-ui:latest
+        cap_add:
+            - NET_ADMIN
+        # use the network of the 'wireguard' service. this enables to show active clients in the status page
+        network_mode: 'service:$$cap_appname'
+        environment:
+            - SENDGRID_API_KEY
+            - EMAIL_FROM_ADDRESS
+            - EMAIL_FROM_NAME
+            - SESSION_SECRET
+            - WGUI_USERNAME=admin
+            - WGUI_PASSWORD=admin
+            - WG_CONF_TEMPLATE
+            - WGUI_MANAGE_START=true
+            - WGUI_MANAGE_RESTART=true
+        logging:
+            driver: json-file
+            options:
+                max-size: 50m
+        volumes:
+        - '$$cap_appname-db:/app/db'
+        - '$$cap_appname-config:/etc/wireguard'
 caproverOneClickApp:
     variables:
         - id: '$$cap_version'
